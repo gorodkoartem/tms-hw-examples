@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "FileManager": {
+      "commandName": "Project",
+      "commandLineArgs": "file.txt"
+    }
+  }
+}
