@@ -17,50 +17,16 @@ public class CategoryService : ICategoryService
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
-    public ServiceDataResponse<Guid> CreateCategory(Category category)
-    {
-        if(category == null)
-        {
-            return new ServiceDataResponse<Guid>
-            {
-                ErrorMessage = "Data cannot be null",
-                Succeeded = false
-            };
-        }
-
-        if(_dbContext.Categories.Any(c => c.Name == category.Name))
-        {
-            return new ServiceDataResponse<Guid>
-            {
-                ErrorMessage = "Category with this name already exists",
-                Succeeded = false
-            };
-        }
-
-        var categoryId = Guid.NewGuid();
-        var dalCategory = _mapper.Map<DAL.Models.Category>(category);
-        dalCategory.Id = categoryId;
-
-        _dbContext.Categories.Add(dalCategory);
-        _dbContext.SaveChanges();
-
-        return new ServiceDataResponse<Guid>
-        {
-            Succeeded = true,
-            Data = categoryId,
-        };
-    }
-
     public async Task<ServiceDataResponse<Category>> CreateCategoryAsync(Category category)
     {
         if (category == null)
         {
-            return new ServiceDataResponse<Category> { Succeeded = false, ErrorMessage = "Data cannot be null" };
+            return ServiceDataResponse<Category>.Failed("Data cannot be null");
         }
 
         if (await _dbContext.Categories.AnyAsync(c => c.Name == category.Name))
         {
-            return new ServiceDataResponse<Category> { Succeeded = false, ErrorMessage = "Category with this name already exists" };
+            return ServiceDataResponse<Category>.Failed("Category with this name already exists");
         }
 
         category.Id = Guid.NewGuid();
@@ -69,11 +35,7 @@ public class CategoryService : ICategoryService
         _dbContext.Categories.Add(dalCategory);
         await _dbContext.SaveChangesAsync();
 
-        return new ServiceDataResponse<Category>
-        {
-            Succeeded = true,
-            Data = category,
-        };
+        return ServiceDataResponse<Category>.Succeeded(category);
     }
 
     public async Task<ServiceResponse> DeleteCategoryAsync(Guid categoryId)
@@ -81,26 +43,53 @@ public class CategoryService : ICategoryService
         var category = await _dbContext.Categories.FirstOrDefaultAsync(category => category.Id == categoryId);
         if(category == null)
         {
-            return new ServiceResponse { Succeeded = false, ErrorMessage = "Category doesn't exist" };
+            return ServiceResponse.Failed("Category doesn't exist");
         }
 
         _dbContext.Categories.Remove(category);
         await _dbContext.SaveChangesAsync();
-        return new ServiceResponse { Succeeded = true };
+        return ServiceResponse.Succeeded();
     }
 
-    public Task<ServiceDataResponse<IEnumerable<Category>>> GetCategoriesAsync()
+    public async Task<ServiceDataResponse<IEnumerable<Category>>> GetCategoriesAsync()
     {
-        throw new NotImplementedException();
+        var categories = await _dbContext.Categories.ToListAsync();
+        return ServiceDataResponse<IEnumerable<Category>>.Succeeded(_mapper.Map<IEnumerable<Category>>(categories));
     }
 
-    public Task<ServiceDataResponse<Category>> GetCategoryByIdAsync(Guid categoryId)
+    public async Task<ServiceDataResponse<Category>> GetCategoryByIdAsync(Guid categoryId)
     {
-        throw new NotImplementedException();
+        var category = await _dbContext.Categories.FirstOrDefaultAsync(category => category.Id == categoryId);
+        if (category == null)
+        {
+            return ServiceDataResponse<Category>.Failed("Category doesn't exist");
+        }
+
+        return ServiceDataResponse<Category>.Succeeded(_mapper.Map<Category>(category));
     }
 
-    public Task<ServiceDataResponse<Category>> UpdateCategoryAsync(Category category)
+    public async Task<ServiceDataResponse<Category>> UpdateCategoryAsync(Category category)
     {
-        throw new NotImplementedException();
+        if (category == null)
+        {
+            return ServiceDataResponse<Category>.Failed("Data cannot be null");
+        }
+
+        var dbCategory = await _dbContext.Categories.FirstOrDefaultAsync(c => c.Id == category.Id);
+        if (dbCategory == null)
+        {
+            return ServiceDataResponse<Category>.Failed("Category doesn't exist");
+        }
+
+        if (await _dbContext.Categories.AnyAsync(c => c.Name == category.Name))
+        {
+            return ServiceDataResponse<Category>.Failed("Category with this name already exists");
+        }
+
+        dbCategory.Name = category.Name;
+        dbCategory.Description = category.Description;
+        await _dbContext.SaveChangesAsync();
+
+        return ServiceDataResponse<Category>.Succeeded(category);
     }
 }

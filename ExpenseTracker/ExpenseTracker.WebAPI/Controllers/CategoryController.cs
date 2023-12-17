@@ -17,8 +17,7 @@ public class CategoryController : Controller
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
-    [HttpPost]
-    [Route("create")]
+    [HttpPost("create")]
     public async Task<IActionResult> CreateCategory([FromBody] Category category)
     {
         if (!ModelState.IsValid)
@@ -27,12 +26,77 @@ public class CategoryController : Controller
         }
 
         var operationResult = await _categoryService.CreateCategoryAsync(_mapper.Map<BL.Models.Category>(category));
-        if (!operationResult.Succeeded)
+        if (!operationResult.IsSucceeded)
         {
             return BadRequest(operationResult.ErrorMessage);
         }
 
-        // TODO replace an empty string with URI
-        return Created("", _mapper.Map<Category>(operationResult.Data));
+        var uri = Url.Action(nameof(GetCategory), new { id = operationResult?.Data?.Id });
+        return Created(uri ?? string.Empty, _mapper.Map<Category>(operationResult?.Data));
+    }
+
+    [HttpGet("get/{id}")]
+    public async Task<IActionResult> GetCategory(Guid id)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var operationResult = await _categoryService.GetCategoryByIdAsync(id);
+        if (!operationResult.IsSucceeded)
+        {
+            return BadRequest(operationResult.ErrorMessage);
+        }
+
+        return Ok(_mapper.Map<Category>(operationResult.Data));
+    }
+
+    [HttpGet("get")]
+    public async Task<IActionResult> GetCategories()
+    {
+        var operationResult = await _categoryService.GetCategoriesAsync();
+        if (!operationResult.IsSucceeded)
+        {
+            return BadRequest(operationResult.ErrorMessage);
+        }
+
+        return Ok(_mapper.Map<IEnumerable<Category>>(operationResult.Data));
+    }
+
+    [HttpPut("update")]
+    public async Task<IActionResult> UpdateCategory([FromBody] Category category)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var operationResult = await _categoryService.UpdateCategoryAsync(_mapper.Map<BL.Models.Category>(category));
+        if (!operationResult.IsSucceeded)
+        {
+            return BadRequest(operationResult.ErrorMessage);
+        }
+
+        var updatedCategory = _mapper.Map<Category>(operationResult.Data);
+        var uri = Url.Action(nameof(GetCategory), new { id = operationResult?.Data?.Id });
+        return Accepted(uri, updatedCategory);
+    }
+
+    [HttpDelete("delete/{id}")]
+    public async Task<IActionResult> DeleteCategory(Guid id)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var operationResult = await _categoryService.DeleteCategoryAsync(id);
+        if (!operationResult.IsSucceeded)
+        {
+            return BadRequest(operationResult.ErrorMessage);
+        }
+
+        return Ok();
     }
 }
