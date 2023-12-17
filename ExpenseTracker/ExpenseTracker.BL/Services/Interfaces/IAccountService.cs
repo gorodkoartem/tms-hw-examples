@@ -4,9 +4,9 @@ namespace ExpenseTracker.BL.Services.Interfaces;
 
 public interface IAccountService
 {
-    ServiceDataResponse<Guid> CreateAccount(Account account);
-    ServiceDataResponse<IEnumerable<Account>> GetAccounts();
-    ServiceDataResponse<Account> GetAccountById(Guid accountId);
-    ServiceDataResponse<Account> UpdateAccount(Account account);
-    ServiceResponse DeleteAccount(Guid accountId);
+    Task<ServiceDataResponse<Account>> CreateAccountAsync(Account account);
+    Task<ServiceDataResponse<IEnumerable<Account>>> GetAccountsAsync();
+    Task<ServiceDataResponse<Account>> GetAccountByIdAsync(Guid accountId);
+    Task<ServiceDataResponse<Account>> UpdateAccountAsync(Account account);
+    Task<ServiceResponse> DeleteAccountAsync(Guid accountId);
 }

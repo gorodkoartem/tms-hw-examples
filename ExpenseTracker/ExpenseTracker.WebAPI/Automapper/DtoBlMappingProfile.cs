@@ -9,5 +9,7 @@ public class DtoBlMappingProfile : Profile
     {
         CreateMap<DTO.Category, Category>();
         CreateMap<Category, DTO.Category>();
+        CreateMap<DTO.Account, Account>();
+        CreateMap<Account, DTO.Account>();
     }
 }

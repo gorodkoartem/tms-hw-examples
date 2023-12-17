@@ -24,6 +24,7 @@ public class Program
         builder.Services.AddDbContext<ExpenseTrackerDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 
         builder.Services.AddScoped<ICategoryService, CategoryService>();
+        builder.Services.AddScoped<IAccountService, AccountService>();
 
         builder.Services.AddAutoMapper(typeof(DalBlMappingProfile), typeof(DtoBlMappingProfile));
 
